@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "330123218601",
+    "project_id": "chatgame-c36b6",
+    "storage_bucket": "chatgame-c36b6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:330123218601:android:5471725035dea1239ea3b8",
+        "android_client_info": {
+          "package_name": "com.example.chatgame"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCn3nNaX3OmM-XPdXxmH0YmHPXZXbLQxU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
