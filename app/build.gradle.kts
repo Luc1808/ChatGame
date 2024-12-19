@@ -54,28 +54,31 @@ android {
 }
 
 dependencies {
-    // Import the Firebase BoM
+    // Firebase BOM to manage consistent versions
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    //Auth
-    implementation(libs.firebase.auth)
-    implementation (libs.play.services.auth)
-    implementation (libs.firebase.auth.ktx)
 
-    //Nav
+    // Firebase Authentication and Firestore
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.database)
+
+    // Google Play Services Auth
+    implementation(libs.play.services.auth)
+
+    // Jetpack Compose Navigation
     implementation(libs.androidx.navigation.compose)
 
-
-    // implementation for viewmodel
+    // ViewModel and Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
-    //Hilt
+    // Hilt for Dependency Injection
     implementation(libs.hilt.android)
+    implementation(libs.androidx.runtime.livedata)
     kapt(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-
+    // Jetpack Compose Core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -84,6 +87,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // Testing Dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -92,6 +97,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
+
 
 // Allow references to generated code
 kapt {

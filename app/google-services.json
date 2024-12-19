@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "330123218601",
+    "firebase_url": "https://chatgame-c36b6-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "chatgame-c36b6",
     "storage_bucket": "chatgame-c36b6.firebasestorage.app"
   },

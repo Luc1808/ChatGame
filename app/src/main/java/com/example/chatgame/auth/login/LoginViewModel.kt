@@ -1,6 +1,7 @@
 package com.example.chatgame.auth.login
 
 import androidx.lifecycle.ViewModel
+import com.example.chatgame.friends.friendList.FriendListViewModel
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +28,12 @@ class LoginViewModel @Inject constructor() : ViewModel() {
                 }
             }
     }
+
+    fun logOut() {
+        FirebaseAuth.getInstance().signOut()
+        _state.value = SignInState.Nothing // Reset state
+    }
+
 }
 
 sealed class SignInState {

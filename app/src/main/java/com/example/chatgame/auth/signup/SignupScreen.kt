@@ -47,10 +47,10 @@ fun SignupScreen(navController: NavController) {
 
         when (uiState.value) {
             is SignUpState.Success -> {
-                navController.navigate("home")
+                navController.navigate("friendlist")
             }
             is SignUpState.Error -> {
-                Toast.makeText(context, "Sign up failed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Tag name already exists", Toast.LENGTH_SHORT).show()
             }
             else -> {}
         }
@@ -110,6 +110,13 @@ fun SignupScreen(navController: NavController) {
                 enabled = name.isNotEmpty() && email.isNotEmpty() && pass.isNotEmpty() && cPass.isNotEmpty() && pass == cPass
             ) {
                 Text(text = "Sign up")
+            }
+
+            Button(onClick = { viewModel.signUpLucas() }) {
+               Text(text = "Lucas")
+            }
+            Button(onClick = { viewModel.signUpTest() }) {
+                Text(text = "Test")
             }
             Spacer(modifier = Modifier.padding(8.dp))
             TextButton(onClick = { navController.navigate("login") }) {

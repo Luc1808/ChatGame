@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
 
 
 @Composable
@@ -47,7 +48,7 @@ fun LoginScreen(navController: NavController) {
 
         when (uiState.value) {
             is SignInState.Success -> {
-                navController.navigate("home")
+                navController.navigate("friendList")
             }
             is SignInState.Error -> {
                 Toast.makeText(context, "Login failed", Toast.LENGTH_SHORT).show()
@@ -98,6 +99,16 @@ fun LoginScreen(navController: NavController) {
             }
             Spacer(modifier = Modifier.padding(8.dp))
 
+            Button(
+                onClick = { viewModel.signIn("lucas@gmail.com", "123456") }
+            ) {
+                Text(text = "Login: Lucas")
+            }
+            Button(
+                onClick = { viewModel.signIn("test@gmail.com", "123456") }
+            ) {
+                Text(text = "Login: Test")
+            }
             TextButton(onClick = { navController.navigate("signup") }) {
                 Text(text = "Do not have an account yet?",)
             }
