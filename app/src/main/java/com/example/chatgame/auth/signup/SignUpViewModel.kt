@@ -24,12 +24,13 @@ class SignUpViewModel @Inject constructor() : ViewModel() {
                 db.collection("users").whereEqualTo("tagName", tagName).get()
                     .addOnSuccessListener { querySnapshot ->
                         if (querySnapshot.isEmpty) {
-                            val user = hashMapOf(
-                                "tagName" to tagName,
-                                "friends" to listOf<String>(),
-                                "friendRequests" to listOf<String>()
-                            )
-                            db.collection("users").document(userId!!).set(user)
+//                            val user = hashMapOf(
+//                                "tagName" to tagName,
+//                                "friends" to listOf<String>(),
+//                                "friendRequests" to listOf<String>()
+//                            )
+                            val user = User(userId!!, tagName, listOf(), listOf())
+                            db.collection("users").document(user.tagName).set(user)
                             _state.value = SignUpState.Success
                         } else {
                             _state.value = SignUpState.Error
@@ -50,12 +51,8 @@ class SignUpViewModel @Inject constructor() : ViewModel() {
                 db.collection("users").whereEqualTo("tagName", "Lucas").get()
                     .addOnSuccessListener { querySnapshot ->
                         if (querySnapshot.isEmpty) {
-                            val user = hashMapOf(
-                                "tagName" to "Lucas",
-                                "friends" to listOf<String>(),
-                                "friendRequests" to listOf<String>()
-                            )
-                            db.collection("users").document(userId!!).set(user)
+                            val user = User(userId!!, "Lucas", listOf(), listOf())
+                            db.collection("users").document(user.tagName).set(user)
                             _state.value = SignUpState.Success
                         } else {
                             _state.value = SignUpState.Error
@@ -76,12 +73,8 @@ class SignUpViewModel @Inject constructor() : ViewModel() {
                 db.collection("users").whereEqualTo("tagName", "Test").get()
                     .addOnSuccessListener { querySnapshot ->
                         if (querySnapshot.isEmpty) {
-                            val user = hashMapOf(
-                                "tagName" to "Test",
-                                "friends" to listOf<String>(),
-                                "friendRequests" to listOf<String>()
-                            )
-                            db.collection("users").document(userId!!).set(user)
+                            val user = User(userId!!, "Test", listOf(), listOf())
+                            db.collection("users").document(user.tagName).set(user)
                             _state.value = SignUpState.Success
                         } else {
                             _state.value = SignUpState.Error
@@ -98,4 +91,11 @@ sealed class SignUpState {
     object Success : SignUpState()
     object Error : SignUpState()
 }
+
+data class User (
+    val userId: String = "",
+    var tagName: String = "",
+    val friends: List<String> = emptyList(),
+    val friendRequests: List<String> = emptyList()
+)
 

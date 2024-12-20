@@ -23,29 +23,43 @@ class FriendListViewModel : ViewModel() {
 
     // Start listening to real-time updates
     fun startListeningForFriends() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        if (userId != null) {
-            val userDocRef = db.collection("users").document(userId)
-            listenerRegistration?.remove()
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
 
-            listenerRegistration = userDocRef.addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    // Log any errors
-                    Log.e("Firestore", "Error fetching friends", error)
-                    return@addSnapshotListener
-                }
+            db.collection("users").whereEqualTo("userId", currentUser.uid).get()
+                .addOnSuccessListener { querySnapshot ->
+                    if (!querySnapshot.isEmpty) {
+                        val tagName = querySnapshot.documents[0].getString("tagName")
+                        if (!tagName.isNullOrEmpty()) {
+                            val userDocRef = db.collection("users").document(tagName)
 
-                if (snapshot != null && snapshot.exists()) {
-                    _friends.value = snapshot.get("friends") as List<String>? ?: emptyList()
-                    _friendRequests.value = snapshot.get("friendRequests") as List<String>? ?: emptyList()
-                } else {
-                    _friends.value = emptyList()
-                    _friendRequests.value = emptyList()
+                            listenerRegistration?.remove()
+
+                            listenerRegistration =
+                                userDocRef.addSnapshotListener { snapshot, error ->
+                                    if (error != null) {
+                                        // Log any errors
+                                        Log.e("Firestore", "Error fetching friends", error)
+                                        return@addSnapshotListener
+                                    }
+
+                                    if (snapshot != null && snapshot.exists()) {
+                                        _friends.value =
+                                            snapshot.get("friends") as List<String>? ?: emptyList()
+                                        _friendRequests.value =
+                                            snapshot.get("friendRequests") as List<String>?
+                                                ?: emptyList()
+                                    } else {
+                                        _friends.value = emptyList()
+                                        _friendRequests.value = emptyList()
+                                    }
+                                }
+                        } else {
+                            _friends.value = emptyList()
+                            _friendRequests.value = emptyList()
+                        }
+                    }
                 }
-            }
-        } else {
-            _friends.value = emptyList()
-            _friendRequests.value = emptyList()
         }
     }
 
@@ -59,43 +73,42 @@ class FriendListViewModel : ViewModel() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         val userId = currentUser?.uid
 
-        db.collection("users").document(userId!!).get()
-            .addOnSuccessListener {
-                val currentUserTagName = it.getString("tagName")
-
-
-                db.collection("users").whereEqualTo("tagName", friendName).get()
-                    .addOnSuccessListener { querySnapshot ->
-                        if (!querySnapshot.isEmpty) {
-                            val targetUserRef = querySnapshot.documents[0].reference
-                            if (currentUserTagName.isNullOrEmpty()) {
-                                Log.e("Firestore", "Current user's tagName is missing")
-                                return@addOnSuccessListener
-                            }
-
-                            targetUserRef.update("friendRequests", FieldValue.arrayUnion(currentUserTagName))
-                        }
-                    }
-            }
-    }
-
-    fun acceptFriendRequest(friendName: String) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        val userId = currentUser?.uid
-        val user = db.collection("users").document(userId!!)
-
         db.collection("users").whereEqualTo("tagName", friendName).get()
             .addOnSuccessListener { querySnapshot ->
                 if (!querySnapshot.isEmpty) {
                     val targetUserRef = querySnapshot.documents[0].reference
+                    if (userId.isNullOrEmpty()) {
+                        Log.e("Firestore", "Current user's tagName is missing")
+                        return@addOnSuccessListener
+                    }
+                    db.collection("users").whereEqualTo("userId", userId).get()
+                        .addOnSuccessListener { me ->
+                            if (!me.isEmpty) {
+                                val myTagName = me.documents[0].getString("tagName")
 
-                    db.collection("users").document(userId).get()
-                        .addOnSuccessListener {
-                            val currentUserTagName = it.getString("tagName")
+                                targetUserRef.update("friendRequests", FieldValue.arrayUnion(myTagName))
+                            }
+                        }
+                }
+            }
+    }
 
-                            user.update("friends", FieldValue.arrayUnion(friendName))
-                            targetUserRef.update("friends", FieldValue.arrayUnion(currentUserTagName))
-                            user.update("friendRequests", FieldValue.arrayRemove(friendName))
+    fun acceptFriendRequest(friendTagName: String) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+        db.collection("users").document(friendTagName).get()
+            .addOnSuccessListener { friend ->
+                if (friend.exists()) {
+
+                    db.collection("users").whereEqualTo("userId", userId).get()
+                        .addOnSuccessListener { me ->
+                            if (!me.isEmpty) {
+                                val myRef = me.documents[0].reference
+                                myRef.update("friends", FieldValue.arrayUnion(friendTagName))
+                                friend.reference.update("friends", FieldValue.arrayUnion(me.documents[0].getString("tagName")))
+                                myRef.update("friendRequests", FieldValue.arrayRemove(friendTagName))
+                            }
+
                         }
                 }
             }
@@ -103,11 +116,19 @@ class FriendListViewModel : ViewModel() {
 
     fun declineFriendRequest(friendName: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
-        val user = db.collection("users").document(userId!!)
 
-        db.collection("users").document(userId).get()
-            .addOnSuccessListener {
-               user.update("friendRequests", FieldValue.arrayRemove(friendName))
+        db.collection("users").whereEqualTo("userId", userId).get()
+            .addOnSuccessListener { me ->
+                val myRef = me.documents[0].reference
+                db.collection("users").whereEqualTo("tagName", friendName).get()
+                    .addOnSuccessListener { querySnapshot ->
+                        if (!querySnapshot.isEmpty) {
+                            val targetUser = querySnapshot.documents[0].getString("tagName")
+
+                            myRef.update("friendRequests", FieldValue.arrayRemove(targetUser))
+                        }
+
+                     }
             }
 
     }
