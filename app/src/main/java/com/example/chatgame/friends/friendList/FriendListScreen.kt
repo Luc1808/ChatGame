@@ -3,6 +3,7 @@ package com.example.chatgame.friends.friendList
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -50,23 +52,32 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.chatgame.R
 import com.example.chatgame.auth.login.LoginViewModel
+import com.example.chatgame.chat.ChatViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendListScreen(navController: NavController, viewModel: FriendListViewModel) {
     val currentUser = FirebaseAuth.getInstance().currentUser
-    val auth = FirebaseAuth.getInstance()
     val logInViewModel = hiltViewModel<LoginViewModel>()
     val friends = viewModel.friends.observeAsState(emptyList())
+    val chatViewModel = hiltViewModel<ChatViewModel>()
 
     // AddFriend bottom sheet
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var tagName by remember { mutableStateOf("") }
+    var friendTagName by remember { mutableStateOf("") }
 
+    FirebaseFirestore.getInstance().collection("users").whereEqualTo("userId", currentUser?.uid).get()
+        .addOnSuccessListener {
+            if (it.documents.isNotEmpty()) {
+                tagName = it.documents[0].getString("tagName").toString()
+            }
+        }
 
     LaunchedEffect(currentUser?.uid) {
         viewModel.startListeningForFriends()
@@ -107,14 +118,19 @@ fun FriendListScreen(navController: NavController, viewModel: FriendListViewMode
                         Text(text = "Logout")
                     }
                 }
-                currentUser?.email?.let { Text(text = it) }
+                Text(text = tagName)
                 LazyColumn {
                     items(friends.value) { friend ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .border(width = 1.dp, color = Color.Gray)
-                                .padding(vertical = 4.dp),
+                                .padding(vertical = 4.dp)
+                                .clickable {
+                                        // Fetch or create the chatId for the selected friend
+                                    chatViewModel.createOrGetChat(listOf(tagName, friend))
+                                    { chatId -> navController.navigate("chatScreen/$chatId") }
+                                },
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Image(
@@ -134,6 +150,12 @@ fun FriendListScreen(navController: NavController, viewModel: FriendListViewMode
                                 fontWeight = FontWeight.Bold,
                                 text = friend
                             )
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            IconButton(onClick = { viewModel.deleteFriend(friend) }) {
+                                Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete friend")
+                            }
                         }
                     }
                 }
@@ -154,8 +176,8 @@ fun FriendListScreen(navController: NavController, viewModel: FriendListViewMode
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 OutlinedTextField(
-                    value = tagName,
-                    onValueChange = { tagName = it },
+                    value = friendTagName,
+                    onValueChange = { friendTagName = it },
                     label = { Text("Tag Name") }
                 )
                 Row(
@@ -167,8 +189,8 @@ fun FriendListScreen(navController: NavController, viewModel: FriendListViewMode
                     Button(onClick = {
                         scope.launch { sheetState.hide() }.invokeOnCompletion {
                             if (!sheetState.isVisible) {
-                                viewModel.sendFriendRequest(tagName)
-                                tagName = ""
+                                viewModel.sendFriendRequest(friendTagName)
+                                friendTagName = ""
                                 showBottomSheet = false
                             }
                         }

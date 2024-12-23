@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.chatgame.auth.login.LoginScreen
 import com.example.chatgame.auth.signup.SignupScreen
+import com.example.chatgame.chat.ChatScreen
 import com.example.chatgame.ui.theme.ChatGameTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -24,6 +25,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ChatGameTheme {
                 ChatGameComposable()
+//                ChatScreen()
             }
         }
     }

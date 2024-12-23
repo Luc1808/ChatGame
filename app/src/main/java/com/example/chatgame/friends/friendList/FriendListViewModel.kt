@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.chatgame.chat.ChatViewModel
+import com.example.chatgame.chat.MessageData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -112,6 +114,7 @@ class FriendListViewModel : ViewModel() {
                         }
                 }
             }
+
     }
 
     fun declineFriendRequest(friendName: String) {
@@ -132,4 +135,26 @@ class FriendListViewModel : ViewModel() {
             }
 
     }
+
+    fun deleteFriend(friendTagName: String) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+        db.collection("users").document(friendTagName).get()
+            .addOnSuccessListener { friend ->
+                if (friend.exists()) {
+
+                    db.collection("users").whereEqualTo("userId", userId).get()
+                        .addOnSuccessListener { me ->
+                            if (!me.isEmpty) {
+                                val myRef = me.documents[0].reference
+                                myRef.update("friends", FieldValue.arrayRemove(friendTagName))
+                                friend.reference.update("friends", FieldValue.arrayRemove(me.documents[0].getString("tagName")))
+                            }
+
+                        }
+                }
+            }
+
+    }
+
 }

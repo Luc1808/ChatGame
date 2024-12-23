@@ -6,6 +6,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.chatgame.auth.login.LoginScreen
 import com.example.chatgame.auth.signup.SignupScreen
+import com.example.chatgame.chat.ChatScreen
+import com.example.chatgame.chat.ChatViewModel
 import com.example.chatgame.friends.addFriend.FriendRequestsScreen
 import com.example.chatgame.friends.friendList.FriendListScreen
 import com.example.chatgame.friends.friendList.FriendListViewModel
@@ -14,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun ChatGameComposable() {
 
+    val chatViewModel = ChatViewModel()
     val friendsViewModel = FriendListViewModel()
     val navController = rememberNavController()
     val currentUser = FirebaseAuth.getInstance().currentUser
@@ -24,5 +27,7 @@ fun ChatGameComposable() {
         composable("signup") { SignupScreen(navController) }
         composable("friendList") { FriendListScreen(navController, friendsViewModel) }
         composable("friendRequests") { FriendRequestsScreen(navController, friendsViewModel) }
+        composable("chatScreen/{chatId}") { backStackEntry -> backStackEntry.arguments?.getString("chatId")
+            ?.let { ChatScreen(navController, chatViewModel, it) } }
     }
 }
