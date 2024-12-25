@@ -1,5 +1,6 @@
 package com.example.chatgame.chat
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,8 +33,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,6 +52,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.chatgame.R
+import com.example.chatgame.profile.ProfileSettingsViewModel
+import com.example.chatgame.ui.theme.friendMessage
+import com.example.chatgame.ui.theme.imagesList
+import com.example.chatgame.ui.theme.userMessage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -55,10 +63,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 fun ChatScreen(navController: NavController, viewModel: ChatViewModel = viewModel(), chatId: String) {
 
     viewModel.fetchMessages(chatId)
+    val profileSettingsViewModel: ProfileSettingsViewModel = viewModel()
     val currentUser = FirebaseAuth.getInstance().currentUser
     val messages = viewModel.messages.observeAsState()
     var chatInput by remember { mutableStateOf("") }
-
 
     var tagName by remember { mutableStateOf("") }
     var friendName by remember { mutableStateOf("") }
@@ -80,6 +88,17 @@ fun ChatScreen(navController: NavController, viewModel: ChatViewModel = viewMode
         }
     }
 
+
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(messages.value) {
+        messages.value?.let {
+            if (it.isNotEmpty()) {
+                listState.scrollToItem(it.size - 1)
+            }
+        }
+    }
+
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
@@ -96,8 +115,17 @@ fun ChatScreen(navController: NavController, viewModel: ChatViewModel = viewMode
                 IconButton(onClick = { navController.navigate("friendList") }) {
                    Icon(imageVector = Icons.Default.KeyboardArrowLeft , contentDescription = "Back")
                 }
+                val image = remember { mutableStateOf(R.drawable.male) } // Default image
+                // Observe changes to friendName and fetch image
+                LaunchedEffect(friendName) {
+                    if (friendName.isNotEmpty()) {
+                        profileSettingsViewModel.fetchUserImage(friendName) { imageId ->
+                            image.value = imagesList[imageId] ?: R.drawable.male
+                        }
+                    }
+                }
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
+                    painter = painterResource(id = image.value),
                     contentDescription = "Friend Image",
                     modifier = Modifier
                         .size(70.dp)
@@ -120,6 +148,7 @@ fun ChatScreen(navController: NavController, viewModel: ChatViewModel = viewMode
                     .background(Color.DarkGray),
             ) {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth(),
@@ -133,7 +162,7 @@ fun ChatScreen(navController: NavController, viewModel: ChatViewModel = viewMode
             Row (
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White),
+                    .background(Color.Transparent),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -183,9 +212,9 @@ fun MessageBubble(messageData: MessageData, isCurrentUser: Boolean) {
     ) {
         Column (
             modifier = Modifier
-                .clip(shape = RoundedCornerShape(40.dp))
+                .clip(shape = RoundedCornerShape(20.dp))
                 .padding(4.dp)
-                .background(if (isCurrentUser) Color.Cyan else Color.Magenta)
+                .background(if (isCurrentUser) userMessage else friendMessage)
                 .padding(8.dp),
         ) {
             Text(text = messageData.messageText, fontSize = 17.sp)

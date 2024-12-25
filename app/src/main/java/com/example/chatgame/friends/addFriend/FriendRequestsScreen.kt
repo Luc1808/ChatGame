@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -35,7 +36,12 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun FriendRequestsScreen(nav: NavController, viewModel: FriendListViewModel) {
 
+    val currentUser = FirebaseAuth.getInstance().currentUser
     val friendRequests = viewModel.friendRequests.observeAsState(emptyList())
+
+    LaunchedEffect(currentUser?.uid) {
+        viewModel.startListeningForFriends()
+    }
 
     Scaffold  (
         content = { innerPadding ->
@@ -46,7 +52,7 @@ fun FriendRequestsScreen(nav: NavController, viewModel: FriendListViewModel) {
                     .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Button(onClick = { nav.navigate("friendlist") }) {
+                Button(onClick = { nav.navigate("friendList") }) {
                     Text(text = "Go back")
                 }
 

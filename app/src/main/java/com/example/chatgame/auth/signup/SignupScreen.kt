@@ -1,5 +1,6 @@
 package com.example.chatgame.auth.signup
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.chatgame.auth.login.SignInState
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun SignupScreen(navController: NavController) {
@@ -115,8 +118,8 @@ fun SignupScreen(navController: NavController) {
             Button(onClick = { viewModel.signUpLucas() }) {
                Text(text = "Lucas")
             }
-            Button(onClick = { viewModel.signUpTest() }) {
-                Text(text = "Test")
+            Button(onClick = { viewModel.signUpJohn() }) {
+                Text(text = "John")
             }
             Spacer(modifier = Modifier.padding(8.dp))
             TextButton(onClick = { navController.navigate("login") }) {

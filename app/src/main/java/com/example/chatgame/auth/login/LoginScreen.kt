@@ -105,9 +105,9 @@ fun LoginScreen(navController: NavController) {
                 Text(text = "Login: Lucas")
             }
             Button(
-                onClick = { viewModel.signIn("test@gmail.com", "123456") }
+                onClick = { viewModel.signIn("john@gmail.com", "123456") }
             ) {
-                Text(text = "Login: Test")
+                Text(text = "Login: John")
             }
             TextButton(onClick = { navController.navigate("signup") }) {
                 Text(text = "Do not have an account yet?",)
