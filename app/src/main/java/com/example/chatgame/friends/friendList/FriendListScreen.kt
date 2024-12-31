@@ -1,19 +1,16 @@
 package com.example.chatgame.friends.friendList
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,14 +20,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -38,7 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -51,15 +44,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.chatgame.R
 import com.example.chatgame.auth.login.LoginViewModel
-import com.example.chatgame.bottomBar.BottomBar
 import com.example.chatgame.chat.ChatViewModel
-import com.example.chatgame.profile.ProfileSettingsViewModel
+import com.example.chatgame.chat.MessageData
+import com.example.chatgame.profile.userprofile.ProfileSettingsViewModel
 import com.example.chatgame.ui.theme.imagesList
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -75,6 +69,7 @@ fun FriendListScreen(navController: NavController, viewModel: FriendListViewMode
     val profileSettingsViewModel = hiltViewModel<ProfileSettingsViewModel>()
     val chatViewModel = hiltViewModel<ChatViewModel>()
     val logInViewModel = hiltViewModel<LoginViewModel>()
+
 
     // AddFriend bottom sheet
     val sheetState = rememberModalBottomSheetState()
@@ -107,9 +102,6 @@ fun FriendListScreen(navController: NavController, viewModel: FriendListViewMode
                 Icon(Icons.Default.Add, contentDescription = "Add Friend")
             }
         },
-        bottomBar = {
-            BottomBar(navController = navController, currentScreen = "friendList")
-        },
         content = { paddingValues ->
             Column(
                 modifier = Modifier
@@ -124,61 +116,99 @@ fun FriendListScreen(navController: NavController, viewModel: FriendListViewMode
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Button(onClick = { navController.navigate("friendRequests") }) {
-                        Text("Friend Requests")
+                        Icon(painter = painterResource(id = R.drawable.add_friend), contentDescription = "Profile Settings")
                     }
-                    Button(onClick = {
-                        if (currentUser != null) {
-                            logInViewModel.logOut()
-                            navController.navigate("login")
-                        }
-                    }) {
-                        Text(text = "Logout")
+                    Button(onClick = { navController.navigate("profileSettings") }) {
+                        Icon(imageVector = Icons.Default.Settings, contentDescription = "Profile Settings")
                     }
                 }
                 Text(text = tagName)
+                val lastMessages = remember { mutableStateOf(mapOf<String, MessageData>()) }
+
+                LaunchedEffect(tagName) {
+                    chatViewModel.fetchLastMessages(tagName) { messages ->
+                        lastMessages.value = messages
+                    }
+                }
                 LazyColumn {
                     items(friends.value) { friend ->
-
+                        val lastMessageData = lastMessages.value[friend]
+                        val lastMessage = lastMessageData?.messageText ?: ""
+                        var lastMessageSender = lastMessageData?.senderTagName ?: ""
+                        if (lastMessageSender == tagName) lastMessageSender = "You"
+                        val lastMessageTimestamp = lastMessageData?.messageTimestamp?.toDate()?.let { date ->
+                           chatViewModel.formatTimestamp(date)
+                        } ?: ""
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(width = 1.dp, color = Color.Gray)
-                                .padding(vertical = 4.dp)
+                                .padding(0.5.dp)
+                                .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
+                                .padding(vertical = 8.dp)
                                 .clickable {
                                     // Fetch or create the chatId for the selected friend
-                                    chatViewModel.createOrGetChat(listOf(tagName, friend))
-                                    { chatId -> navController.navigate("chatScreen/$chatId") }
+                                    chatViewModel.createOrGetChat(
+                                        listOf(
+                                            tagName,
+                                            friend
+                                        )
+                                    ) { chatId ->
+                                        navController.navigate("chatScreen/$chatId")
+                                    }
                                 },
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            val friendImage = remember { mutableStateOf(R.drawable.male) } // Default image
+                            val friendImage = remember { mutableStateOf(1) } // Default image
 
                             profileSettingsViewModel.fetchUserImage(friend) { imageId ->
-                                friendImage.value = imagesList[imageId] ?: R.drawable.male // Map imageId to drawable
+                                friendImage.value = imagesList[imageId] ?: R.drawable.first// Map imageId to drawable
                             }
-                            Image(
-                                painter = painterResource(id = friendImage.value),
-                                contentDescription = "Friend Image",
-                                modifier = Modifier
-                                    .size(70.dp)
-                                    .aspectRatio(1f)
-                                    .padding(8.dp)
-                                    .clip(CircleShape)
-                            )
+
+                            if (friendImage.value != 1) {
+                                Image(
+                                    painter = painterResource(id = friendImage.value),
+                                    contentDescription = "Friend Image",
+                                    modifier = Modifier
+                                        .size(70.dp)
+                                        .aspectRatio(1f)
+                                        .padding(8.dp)
+                                        .clip(CircleShape)
+                                )
+                            } else {
+                                Spacer(
+                                    modifier = Modifier
+                                        .size(70.dp)
+                                        .aspectRatio(1f)
+                                        .clip(CircleShape)
+                                        .background(Color.White) // Placeholder color
+                                )
+                            }
 
                             Spacer(modifier = Modifier.width(16.dp))
 
-                            Text(
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                text = friend
-                            )
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    text = friend
+                                )
 
-                            Spacer(modifier = Modifier.weight(1f))
 
-                            IconButton(onClick = { viewModel.deleteFriend(friend) }) {
-                                Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete friend")
+                                Text(
+                                    overflow = TextOverflow.Ellipsis,
+                                    maxLines = 1,
+                                    text = if (lastMessage.isNotEmpty()) "$lastMessageSender: $lastMessage"
+                                       else lastMessage)
                             }
+                                
+
+                            Text(text = lastMessageTimestamp, modifier = Modifier.padding(end = 16.dp))
+
+//                            IconButton(onClick = { viewModel.deleteFriend(friend) }) {
+//                                Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete friend")
+//                            }
                         }
                     }
                 }

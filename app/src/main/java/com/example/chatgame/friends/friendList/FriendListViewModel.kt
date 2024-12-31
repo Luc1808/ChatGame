@@ -157,4 +157,7 @@ class FriendListViewModel : ViewModel() {
 
     }
 
+
 }
+
+

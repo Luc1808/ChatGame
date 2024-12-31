@@ -30,7 +30,7 @@ class SignUpViewModel @Inject constructor() : ViewModel() {
 //                                "friends" to listOf<String>(),
 //                                "friendRequests" to listOf<String>()
 //                            )
-                            val user = User(userId!!,"male", tagName, listOf(), listOf())
+                            val user = User(userId!!,"male","gray", tagName, listOf(), listOf())
                             db.collection("users").document(user.tagName).set(user)
                             _state.value = SignUpState.Success
                         } else {
@@ -52,7 +52,7 @@ class SignUpViewModel @Inject constructor() : ViewModel() {
                 db.collection("users").whereEqualTo("tagName", "Lucas").get()
                     .addOnSuccessListener { querySnapshot ->
                         if (querySnapshot.isEmpty) {
-                            val user = User(userId!!,"male", "Lucas", listOf(), listOf())
+                            val user = User(userId!!,"sixth","green", "Lucas", listOf(), listOf())
                             db.collection("users").document(user.tagName).set(user)
                             _state.value = SignUpState.Success
                         } else {
@@ -76,7 +76,7 @@ class SignUpViewModel @Inject constructor() : ViewModel() {
                 db.collection("users").whereEqualTo("tagName", "John").get()
                     .addOnSuccessListener { querySnapshot ->
                         if (querySnapshot.isEmpty) {
-                            val user = User(userId!!,"male", "John", listOf(), listOf())
+                            val user = User(userId!!,"third","blue", "John", listOf(), listOf())
                             db.collection("users").document(user.tagName).set(user)
                             _state.value = SignUpState.Success
                         } else {
@@ -98,6 +98,7 @@ sealed class SignUpState {
 data class User (
     val userId: String = "",
     val userIconId: String = "",
+    val coverColor: String = "",
     var tagName: String = "",
     val friends: List<String> = emptyList(),
     val friendRequests: List<String> = emptyList()

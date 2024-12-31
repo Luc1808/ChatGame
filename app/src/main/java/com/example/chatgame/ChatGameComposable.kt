@@ -11,8 +11,10 @@ import com.example.chatgame.chat.ChatViewModel
 import com.example.chatgame.friends.addFriend.FriendRequestsScreen
 import com.example.chatgame.friends.friendList.FriendListScreen
 import com.example.chatgame.friends.friendList.FriendListViewModel
-import com.example.chatgame.profile.ProfileSettingsScreen
-import com.example.chatgame.profile.ProfileSettingsViewModel
+import com.example.chatgame.profile.friendprofile.FriendProfileScreen
+import com.example.chatgame.profile.friendprofile.FriendProfileViewModel
+import com.example.chatgame.profile.userprofile.ProfileSettingsScreen
+import com.example.chatgame.profile.userprofile.ProfileSettingsViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -30,5 +32,9 @@ fun ChatGameComposable() {
         composable("chatScreen/{chatId}") { backStackEntry -> backStackEntry.arguments?.getString("chatId")
             ?.let { ChatScreen(navController, ChatViewModel(), it) } }
         composable("profileSettings") { ProfileSettingsScreen(navController, ProfileSettingsViewModel()) }
+        composable("friendProfileScreen/{friendName}") { navBackStackEntry ->
+            val friendName = navBackStackEntry.arguments?.getString("friendName") ?: ""
+            FriendProfileScreen(navController, friendName, FriendProfileViewModel())
+        }
     }
 }

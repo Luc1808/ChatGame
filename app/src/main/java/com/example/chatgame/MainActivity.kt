@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
 import com.example.chatgame.auth.login.LoginScreen
 import com.example.chatgame.auth.signup.SignupScreen
 import com.example.chatgame.chat.ChatScreen

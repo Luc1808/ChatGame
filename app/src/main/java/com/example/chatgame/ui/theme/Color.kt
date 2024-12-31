@@ -12,11 +12,18 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 
-val userMessage = Color(0xFF223A61)
-val friendMessage = Color(0xFF61223A)
-
-
 val imagesList = mapOf(
-    "male" to R.drawable.male,
-    "female" to R.drawable.female,
+    "first" to R.drawable.first,
+    "second" to R.drawable.second,
+    "third" to R.drawable.third,
+    "fourth" to R.drawable.fourth,
+    "fifth" to R.drawable.fifth,
+    "sixth" to R.drawable.sixth,
+)
+
+val coverColors = mapOf(
+    "blue" to Color(0xFF39399E),
+    "gray" to Color(0xFF505050),
+    "green" to Color(0xFF3D7C3D),
+    "pink" to Color(0xFF9B5784),
 )
